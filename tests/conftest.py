@@ -32,6 +32,38 @@ def pytest_configure(config):
     )
 
 
+def pytest_html_results_summary(prefix, summary, postfix):
+    """Add custom CSS to expand all test details by default."""
+    prefix.extend([
+        "<style>",
+        "  /* Show all test details expanded by default */",
+        "  .extras-row { display: table-row !important; }",
+        "  .extras { display: block !important; }",
+        "  .col-result { cursor: pointer; }",
+        "  /* Style the log divs */",
+        "  .log { margin: 8px 0; padding: 10px; background: #f5f5f5; border-left: 3px solid #4CAF50; }",
+        "  .log strong { color: #333; }",
+        "  .log pre { margin: 5px 0 0 0; white-space: pre-wrap; word-wrap: break-word; background: #fff; padding: 8px; border-radius: 4px; max-height: 300px; overflow-y: auto; }",
+        "  /* Color code by test result */",
+        "  tr.passed .log { border-left-color: #4CAF50; }",
+        "  tr.failed .log { border-left-color: #f44336; }",
+        "  tr.xfailed .log { border-left-color: #ff9800; }",
+        "</style>",
+        "<script>",
+        "  // Auto-expand all test rows on page load",
+        "  document.addEventListener('DOMContentLoaded', function() {",
+        "    // Find all collapsed rows and expand them",
+        "    document.querySelectorAll('.extras-row').forEach(function(row) {",
+        "      row.style.display = 'table-row';",
+        "    });",
+        "    document.querySelectorAll('.extras').forEach(function(el) {",
+        "      el.style.display = 'block';",
+        "    });",
+        "  });",
+        "</script>",
+    ])
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """
