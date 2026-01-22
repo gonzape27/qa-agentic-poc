@@ -15,8 +15,8 @@ coverage-type = "cobertura"
 max-iterations = 5
 
 # Model to use (supports OpenAI, Anthropic, etc.)
-# Set via environment variable: OPENAI_API_KEY or ANTHROPIC_API_KEY
-model = "gpt-4o"
+# Set via environment variable: ANTHROPIC_API_KEY
+model = "claude-3-5-sonnet-20241022"
 
 # Source files to generate tests for
 [sources]
