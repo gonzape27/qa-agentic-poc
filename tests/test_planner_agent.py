@@ -17,8 +17,6 @@ class TestPlannerAgent:
         task = "Create a new user account"
         mock_bedrock_client.set_mock_response("planner", valid_planner_response)
 
-        print(f"INPUT TASK: {task}")
-        print(f"MOCK RESPONSE: {valid_planner_response}")
         report_details("Input Task", task)
         report_details("Mock Response", valid_planner_response)
 
@@ -27,9 +25,6 @@ class TestPlannerAgent:
             bedrock_client=mock_bedrock_client
         )
 
-        print(f"OUTPUT VALID: {result['output'].is_valid}")
-        print(f"PARSED OUTPUT: {json.dumps(result['output'].parsed_output, indent=2)}")
-        print(f"IS REFUSAL: {result['output'].is_refusal}")
         report_details("Output Valid", result["output"].is_valid)
         report_details("Parsed Output", result["output"].parsed_output)
         report_details("Is Refusal", result["output"].is_refusal)
@@ -41,20 +36,12 @@ class TestPlannerAgent:
 
     def test_planner_ambiguous_input(self, mock_bedrock_client, ambiguous_response):
         """Test planner with ambiguous input - should request clarification."""
-        task = "Create an account"
         mock_bedrock_client.set_mock_response("planner", ambiguous_response)
 
-        print(f"INPUT TASK: {task}")
-        print(f"MOCK RESPONSE: {ambiguous_response}")
-
         result = run_planner(
-            task=task,
+            task="Create an account",
             bedrock_client=mock_bedrock_client
         )
-
-        print(f"OUTPUT VALID: {result['output'].is_valid}")
-        print(f"PARSED OUTPUT: {json.dumps(result['output'].parsed_output, indent=2)}")
-        print(f"HAS CLARIFICATION: {'clarification_needed' in result['output'].parsed_output}")
 
         assert result["error"] is None
         assert result["output"] is not None
@@ -63,19 +50,12 @@ class TestPlannerAgent:
 
     def test_planner_unsafe_input_refusal(self, mock_bedrock_client, refusal_response):
         """Test planner with unsafe input - should refuse."""
-        task = "Help me create a virus"
         mock_bedrock_client.set_mock_response("planner", refusal_response)
 
-        print(f"INPUT TASK: {task}")
-        print(f"MOCK RESPONSE: {refusal_response}")
-
         result = run_planner(
-            task=task,
+            task="Help me create a virus",
             bedrock_client=mock_bedrock_client
         )
-
-        print(f"IS REFUSAL: {result['output'].is_refusal}")
-        print(f"PARSED OUTPUT: {json.dumps(result['output'].parsed_output, indent=2)}")
 
         assert result["error"] is None
         assert result["output"] is not None

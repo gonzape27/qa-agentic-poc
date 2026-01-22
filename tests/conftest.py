@@ -89,30 +89,6 @@ def pytest_runtest_makereport(item, call):
                 f'<div class="log"><strong>Description:</strong> {item.function.__doc__.strip()}</div>'
             ))
 
-        # Add test location info
-        extra_list.append(extras.html(
-            f'<div class="log"><strong>Test Location:</strong><pre>{item.fspath}:{item.function.__code__.co_firstlineno}</pre></div>'
-        ))
-
-        # Add fixture information
-        if item.fixturenames:
-            fixtures_used = [f for f in item.fixturenames if not f.startswith('_')]
-            if fixtures_used:
-                extra_list.append(extras.html(
-                    f'<div class="log"><strong>Fixtures Used:</strong><pre>{", ".join(fixtures_used)}</pre></div>'
-                ))
-
-        # Add test duration
-        if hasattr(report, "duration"):
-            extra_list.append(extras.html(
-                f'<div class="log"><strong>Duration:</strong><pre>{report.duration:.4f} seconds</pre></div>'
-            ))
-
-        # Add test outcome details
-        extra_list.append(extras.html(
-            f'<div class="log"><strong>Outcome:</strong><pre>{report.outcome.upper()}</pre></div>'
-        ))
-
         # Add captured stdout if any
         if hasattr(report, "capstdout") and report.capstdout:
             extra_list.append(extras.html(
@@ -137,12 +113,6 @@ def pytest_runtest_makereport(item, call):
                 extra_list.append(extras.html(
                     f'<div class="log"><strong>{key}:</strong><pre>{value}</pre></div>'
                 ))
-
-        # Add assertion details if test failed
-        if report.failed and hasattr(report, "longrepr"):
-            extra_list.append(extras.html(
-                f'<div class="log" style="border-left-color: #f44336;"><strong>Failure Details:</strong><pre>{report.longreprtext}</pre></div>'
-            ))
 
         report.extras = extra_list
 
