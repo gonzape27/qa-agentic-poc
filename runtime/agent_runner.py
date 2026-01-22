@@ -226,7 +226,8 @@ class AgentRunner:
             system_prompt=full_system_prompt,
             user_message=user_message,
             tools=tools,
-            config=model_config
+            config=model_config,
+            agent_name=agent_name
         )
 
         # Parse the response

@@ -219,6 +219,21 @@ Add README.md explaining:
 
 ---
 
+## TASK 14 — Local Test Verification
+Run all tests locally to verify implementation:
+- Install dependencies in virtual environment
+- Run pytest with all test files
+- Verify passing and failing tests work as expected
+- Fix any issues discovered
+- Generate test reports locally
+
+Acceptance:
+- All non-intentional tests pass
+- Intentional failures are properly marked as xfail
+- HTML and XML reports generated successfully
+
+---
+
 ## Success Criteria
 - Prompt changes trigger CI
 - Agent regressions caught early
@@ -227,3 +242,4 @@ Add README.md explaining:
 - **Both passing and failing tests demonstrated in reports**
 - **Local testing works without Docker or AWS credentials (mock mode)**
 - **Same test experience locally and in CI**
+- **All tests verified to pass locally before deployment**
