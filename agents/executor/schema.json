@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecutorOutput",
+  "description": "Output schema for the Executor agent",
+  "type": "object",
+  "properties": {
+    "execution_id": {
+      "type": "string",
+      "description": "Unique identifier for this execution run"
+    },
+    "results": {
+      "type": "array",
+      "description": "Results for each executed step",
+      "items": {
+        "type": "object",
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "description": "ID of the step from the plan"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["success", "failed", "skipped"],
+            "description": "Outcome of the step execution"
+          },
+          "tool_calls": {
+            "type": "array",
+            "description": "Tools invoked for this step",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tool_name": {
+                  "type": "string",
+                  "description": "Name of the tool called"
+                },
+                "arguments": {
+                  "type": "object",
+                  "description": "Arguments passed to the tool"
+                },
+                "result": {
+                  "type": "string",
+                  "description": "Output from the tool"
+                }
+              },
+              "required": ["tool_name", "arguments", "result"]
+            }
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if the step failed"
+          },
+          "output": {
+            "type": "string",
+            "description": "Output or result of successful execution"
+          }
+        },
+        "required": ["step_id", "status"]
+      }
+    },
+    "refusal": {
+      "type": "object",
+      "description": "Present if the agent refuses to execute",
+      "properties": {
+        "reason": {
+          "type": "string",
+          "description": "Why execution was refused"
+        },
+        "step_id": {
+          "type": "string",
+          "description": "ID of the step that triggered refusal"
+        }
+      },
+      "required": ["reason"]
+    },
+    "summary": {
+      "type": "object",
+      "description": "Execution summary statistics",
+      "properties": {
+        "total_steps": {
+          "type": "integer"
+        },
+        "successful": {
+          "type": "integer"
+        },
+        "failed": {
+          "type": "integer"
+        },
+        "skipped": {
+          "type": "integer"
+        }
+      },
+      "required": ["total_steps", "successful", "failed", "skipped"]
+    }
+  },
+  "required": ["execution_id"],
+  "oneOf": [
+    {
+      "required": ["results", "summary"]
+    },
+    {
+      "required": ["refusal"]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+# Docker Compose for local testing with Docker
+
+version: '3.8'
+
+services:
+  test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      - MOCK_BEDROCK=true
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - BEDROCK_MODEL_ID=${BEDROCK_MODEL_ID:-anthropic.claude-3-sonnet-20240229-v1:0}
+    volumes:
+      - ../reports:/app/reports
+    command: >
+      pytest tests/ -v
+      --html=reports/report.html
+      --self-contained-html
+      --junitxml=reports/junit.xml
+      --tb=short
+
+  test-real:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      - MOCK_BEDROCK=false
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - BEDROCK_MODEL_ID=${BEDROCK_MODEL_ID:-anthropic.claude-3-sonnet-20240229-v1:0}
+    volumes:
+      - ../reports:/app/reports
+    command: >
+      pytest tests/ -v
+      --html=reports/report.html
+      --self-contained-html
+      --junitxml=reports/junit.xml
+      --tb=short

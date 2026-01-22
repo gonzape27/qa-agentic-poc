@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PlannerOutput",
+  "description": "Output schema for the Planner agent",
+  "type": "object",
+  "properties": {
+    "task_summary": {
+      "type": "string",
+      "description": "A brief summary of the task being planned"
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered list of steps to complete the task",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the step"
+          },
+          "description": {
+            "type": "string",
+            "description": "What this step accomplishes"
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "IDs of steps that must complete before this one"
+          },
+          "complexity": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Estimated complexity of the step"
+          }
+        },
+        "required": ["id", "description", "dependencies", "complexity"]
+      }
+    },
+    "refusal": {
+      "type": "object",
+      "description": "Present if the agent refuses to plan the task",
+      "properties": {
+        "reason": {
+          "type": "string",
+          "description": "Why the task was refused"
+        }
+      },
+      "required": ["reason"]
+    },
+    "clarification_needed": {
+      "type": "string",
+      "description": "Present if the agent needs more information"
+    }
+  },
+  "required": ["task_summary"],
+  "oneOf": [
+    {
+      "required": ["steps"]
+    },
+    {
+      "required": ["refusal"]
+    },
+    {
+      "required": ["clarification_needed"]
+    }
+  ]
+}
