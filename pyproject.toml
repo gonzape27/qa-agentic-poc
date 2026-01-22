@@ -34,7 +34,7 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-addopts = "-v --capture=sys --tb=short"
+addopts = "-v --tb=short -rA"
 log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"

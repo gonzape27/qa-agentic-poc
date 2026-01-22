@@ -29,11 +29,17 @@ class TestExecutorAgent:
             ]
         }
 
+        print(f"INPUT PLAN: {json.dumps(plan, indent=2)}")
+        print(f"MOCK RESPONSE: {valid_executor_response}")
+
         result = run_executor(
             plan=plan,
             bedrock_client=mock_bedrock_client,
             tool_registry=tool_registry
         )
+
+        print(f"OUTPUT VALID: {result['output'].is_valid}")
+        print(f"PARSED OUTPUT: {json.dumps(result['output'].parsed_output, indent=2)}")
 
         assert result["error"] is None
         assert result["output"] is not None
@@ -59,11 +65,17 @@ class TestExecutorAgent:
             ]
         }
 
+        print(f"INPUT PLAN: {json.dumps(plan, indent=2)}")
+        print(f"MOCK RESPONSE: {refusal}")
+
         result = run_executor(
             plan=plan,
             bedrock_client=mock_bedrock_client,
             tool_registry=tool_registry
         )
+
+        print(f"IS REFUSAL: {result['output'].is_refusal}")
+        print(f"PARSED OUTPUT: {json.dumps(result['output'].parsed_output, indent=2)}")
 
         assert result["output"].is_refusal is True
 
