@@ -161,11 +161,22 @@ def report_details(request):
 
 @pytest.fixture(autouse=True)
 def setup_mock_mode():
-    """Ensure mock mode is enabled for all tests."""
-    os.environ["MOCK_BEDROCK"] = "true"
+    """
+    Setup mock mode based on environment.
+
+    If MOCK_BEDROCK is already set (from .env or command line), respect it.
+    Otherwise, default to mock mode for safety.
+    """
+    original_value = os.environ.get("MOCK_BEDROCK")
+
+    # Only set mock mode if not already configured
+    if original_value is None:
+        os.environ["MOCK_BEDROCK"] = "true"
+
     yield
-    # Cleanup
-    if "MOCK_BEDROCK" in os.environ:
+
+    # Restore original state
+    if original_value is None and "MOCK_BEDROCK" in os.environ:
         del os.environ["MOCK_BEDROCK"]
 
 

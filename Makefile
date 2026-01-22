@@ -1,13 +1,20 @@
 # Makefile for local development and testing
 
-.PHONY: help install install-dev test test-mock test-html test-ci lint clean setup
+.PHONY: help install install-dev test test-mock test-real test-html test-ci lint clean setup
+
+# Load .env file if it exists
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
 
 help:
 	@echo "Available commands:"
 	@echo "  make install      - Install production dependencies"
 	@echo "  make install-dev  - Install all dependencies including dev"
-	@echo "  make test         - Run tests with pytest"
+	@echo "  make test         - Run tests (uses .env settings)"
 	@echo "  make test-mock    - Run tests in mock mode (no AWS needed)"
+	@echo "  make test-real    - Run tests with real AWS Bedrock"
 	@echo "  make test-html    - Run tests and generate HTML report"
 	@echo "  make test-ci      - Run tests like CI (with reports)"
 	@echo "  make lint         - Run linting checks"
@@ -31,25 +38,30 @@ install-dev:
 	pip install -r requirements.txt
 	pip install pytest pytest-html pytest-asyncio pytest-cov
 
-# Run tests
+# Run tests (uses MOCK_BEDROCK from .env, defaults to mock if not set)
 test:
-	MOCK_BEDROCK=true pytest tests/ -v
+	pytest tests/ -v
 
 # Run tests in mock mode (no AWS credentials needed)
 test-mock:
 	MOCK_BEDROCK=true pytest tests/ -v --tb=short
 
-# Run tests with HTML report
+# Run tests with real AWS Bedrock (requires credentials in .env)
+test-real:
+	MOCK_BEDROCK=false pytest tests/ -v --tb=short
+
+# Run tests with HTML report (uses .env settings)
 test-html:
-	MOCK_BEDROCK=true pytest tests/ -v \
+	mkdir -p reports
+	pytest tests/ -v \
 		--html=reports/report.html \
 		--self-contained-html \
 		--junitxml=reports/junit.xml
 
-# Run tests like CI would (with all reports)
+# Run tests like CI would (with all reports, uses .env settings)
 test-ci:
 	mkdir -p reports
-	MOCK_BEDROCK=true pytest tests/ -v \
+	pytest tests/ -v \
 		--html=reports/report.html \
 		--self-contained-html \
 		--junitxml=reports/junit.xml \
@@ -59,6 +71,8 @@ test-ci:
 	@echo "Test reports generated in reports/"
 	@echo "  - HTML Report: reports/report.html"
 	@echo "  - JUnit XML: reports/junit.xml"
+	@echo ""
+	@echo "Mode: $${MOCK_BEDROCK:-not set (defaults to mock)}"
 
 # Run linting (if tools are installed)
 lint:
