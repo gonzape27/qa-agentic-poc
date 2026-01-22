@@ -126,6 +126,90 @@ class TestModelConfig:
         assert config.temperature == 0.5
 
 
+    def test_generic_mock_response(self):
+        """Test that generic mock response is returned when no mock is set."""
+        client = BedrockClient(mock_mode=True)
+
+        # Don't set any mock response
+        response = client.invoke(
+            system_prompt="Test",
+            user_message="Test"
+        )
+
+        # Should return generic mock
+        parsed = json.loads(response)
+        assert "task_summary" in parsed
+
+    def test_mock_failure_default_message(self):
+        """Test mock failure with default error message."""
+        client = BedrockClient(mock_mode=True)
+        client.set_mock_response(
+            "test_agent",
+            "",
+            should_fail=True
+            # No error_message - should use default
+        )
+
+        with pytest.raises(Exception) as exc_info:
+            client.invoke(
+                system_prompt="Test",
+                user_message="Test",
+                agent_name="test_agent"
+            )
+
+        assert "Mock failure" in str(exc_info.value)
+
+    def test_invoke_with_tools(self):
+        """Test invoke with tools parameter."""
+        client = BedrockClient(mock_mode=True)
+        client.set_default_mock_response('{"result": "ok"}')
+
+        tools = [{"name": "test_tool", "description": "A test tool"}]
+
+        response = client.invoke(
+            system_prompt="Test",
+            user_message="Test",
+            tools=tools
+        )
+
+        log = client.get_invocation_log()
+        assert log[0]["tools"] == tools
+
+    def test_invoke_with_config(self):
+        """Test invoke with custom model config."""
+        client = BedrockClient(mock_mode=True)
+        client.set_default_mock_response('{"result": "ok"}')
+
+        config = ModelConfig(max_tokens=500, temperature=0.7)
+
+        response = client.invoke(
+            system_prompt="Test",
+            user_message="Test",
+            config=config
+        )
+
+        log = client.get_invocation_log()
+        assert log[0]["config"]["max_tokens"] == 500
+        assert log[0]["config"]["temperature"] == 0.7
+
+    def test_region_default(self, monkeypatch):
+        """Test that region defaults correctly."""
+        monkeypatch.delenv("AWS_REGION", raising=False)
+        client = BedrockClient(mock_mode=True)
+        assert client.region == "us-east-1"
+
+    def test_region_from_env(self, monkeypatch):
+        """Test that region is read from environment."""
+        monkeypatch.setenv("AWS_REGION", "eu-west-1")
+        client = BedrockClient(mock_mode=True)
+        assert client.region == "eu-west-1"
+
+    def test_region_override(self):
+        """Test that region can be overridden."""
+        client = BedrockClient(region="ap-northeast-1", mock_mode=True)
+        assert client.region == "ap-northeast-1"
+
+
 class TestCreateClient:
     """Tests for the create_client factory function."""
 
@@ -138,3 +222,9 @@ class TestCreateClient:
         """Test creating a client in real mode."""
         client = create_client(mock_mode=False)
         assert client.mock_mode is False
+
+    def test_create_client_default(self, monkeypatch):
+        """Test creating client with default settings."""
+        monkeypatch.setenv("MOCK_BEDROCK", "true")
+        client = create_client()
+        assert client.mock_mode is True

@@ -152,11 +152,82 @@ class TestAgentRunner:
         assert "steps" in output.parsed_output or "clarification_needed" in output.parsed_output
 
 
+    def test_load_agent_caching(self, mock_bedrock_client):
+        """Test that agents are cached after first load."""
+        runner = AgentRunner(bedrock_client=mock_bedrock_client)
+
+        # Load agent twice
+        config1 = runner.load_agent("planner")
+        config2 = runner.load_agent("planner")
+
+        # Should be the same cached object
+        assert config1 is config2
+
+    def test_validate_output_invalid_schema(self, mock_bedrock_client):
+        """Test validation with an invalid schema."""
+        runner = AgentRunner(bedrock_client=mock_bedrock_client)
+
+        # Invalid schema (wrong type for 'type')
+        invalid_schema = {
+            "type": ["not", "valid"]
+        }
+
+        output = {"message": "Hello"}
+        is_valid, errors = runner.validate_output(output, invalid_schema)
+
+        assert is_valid is False
+        assert len(errors) > 0
+
+    def test_parse_response_plain_markdown_block(self, mock_bedrock_client):
+        """Test parsing JSON from plain markdown code block."""
+        runner = AgentRunner(bedrock_client=mock_bedrock_client)
+
+        response = '```\n{"message": "Hello"}\n```'
+        result = runner.parse_response(response)
+
+        assert result == {"message": "Hello"}
+
+    def test_parse_response_invalid_json(self, mock_bedrock_client):
+        """Test parsing completely invalid response."""
+        runner = AgentRunner(bedrock_client=mock_bedrock_client)
+
+        response = 'This is not JSON at all, no braces anywhere'
+        result = runner.parse_response(response)
+
+        assert result is None
+
+    def test_parse_response_malformed_json(self, mock_bedrock_client):
+        """Test parsing malformed JSON that looks like JSON."""
+        runner = AgentRunner(bedrock_client=mock_bedrock_client)
+
+        response = '{"message": invalid}'  # Missing quotes around value
+        result = runner.parse_response(response)
+
+        assert result is None
+
+    def test_run_agent_with_unparseable_response(self, mock_bedrock_client):
+        """Test running agent when response can't be parsed."""
+        mock_bedrock_client.set_mock_response("planner", "not valid json")
+
+        runner = AgentRunner(bedrock_client=mock_bedrock_client)
+        output = runner.run_agent("planner", "Test task")
+
+        assert output.is_valid is False
+        assert "Failed to parse" in output.validation_errors[0]
+
+
 class TestRunAgentFunction:
     """Tests for the run_agent convenience function."""
 
-    def test_run_agent_function(self, mock_bedrock_client, valid_planner_response):
+    def test_run_agent_function_works(self, mock_bedrock_client, valid_planner_response, monkeypatch):
         """Test the module-level run_agent function."""
-        # This test validates the convenience function works
-        # In real usage, it would create its own client
-        pass  # Covered by class tests
+        # Monkeypatch to use mock client
+        from runtime import agent_runner
+        monkeypatch.setattr(agent_runner, "BedrockClient", lambda **kwargs: mock_bedrock_client)
+
+        mock_bedrock_client.set_mock_response("planner", valid_planner_response)
+
+        output = run_agent("planner", "Create a user account")
+
+        assert output.agent_name == "planner"
+        assert output.parsed_output is not None
