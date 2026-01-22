@@ -16,7 +16,8 @@ class ModelConfig(BaseModel):
     model_id: str = Field(
         default_factory=lambda: os.getenv(
             "BEDROCK_MODEL_ID",
-            "anthropic.claude-3-5-sonnet-20241022-v2:0"
+            # Cross-region inference profile for Claude 3.5 Sonnet v2
+            "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
         )
     )
     max_tokens: int = 4096

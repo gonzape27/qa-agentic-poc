@@ -182,8 +182,13 @@ def setup_mock_mode():
 
 @pytest.fixture
 def mock_bedrock_client():
-    """Create a mock Bedrock client for testing."""
-    client = BedrockClient(mock_mode=True)
+    """
+    Create a Bedrock client for testing.
+
+    Uses real AWS Bedrock when MOCK_BEDROCK=false, otherwise uses mock mode.
+    """
+    mock_mode = os.getenv("MOCK_BEDROCK", "true").lower() == "true"
+    client = BedrockClient(mock_mode=mock_mode)
     return client
 
 
