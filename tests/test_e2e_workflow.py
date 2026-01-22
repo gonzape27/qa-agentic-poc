@@ -24,7 +24,7 @@ class TestEndToEndWorkflow:
         yield
         reset_registry()
 
-    def test_full_workflow_happy_path(self):
+    def test_full_workflow_happy_path(self, report_details):
         """
         Test complete workflow: task → plan → execute.
 
@@ -36,6 +36,8 @@ class TestEndToEndWorkflow:
         """
         # Setup mock client
         client = BedrockClient(mock_mode=True)
+
+        report_details("Test Type", "End-to-End Workflow")
 
         # Mock planner response
         planner_response = json.dumps({
@@ -108,11 +110,16 @@ class TestEndToEndWorkflow:
         client.set_mock_response("planner", planner_response)
         client.set_mock_response("executor", executor_response)
 
+        input_task = "Send a welcome email to the new user john@example.com"
+        report_details("Input Task", input_task)
+
         # Step 1: Run planner
         planner_result = run_planner(
-            task="Send a welcome email to the new user john@example.com",
+            task=input_task,
             bedrock_client=client
         )
+
+        report_details("Planner Output", planner_result["output"].parsed_output)
 
         # Validate planner output
         assert planner_result["error"] is None
@@ -133,6 +140,8 @@ class TestEndToEndWorkflow:
             tool_registry=tool_registry
         )
 
+        report_details("Executor Output", executor_result["output"].parsed_output)
+
         # Validate executor output
         assert executor_result["error"] is None
         assert executor_result["output"] is not None
@@ -145,6 +154,8 @@ class TestEndToEndWorkflow:
 
         # Validate all steps completed successfully
         summary = execution["summary"]
+        report_details("Execution Summary", summary)
+
         assert summary["total_steps"] == 3
         assert summary["successful"] == 3
         assert summary["failed"] == 0

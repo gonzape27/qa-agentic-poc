@@ -3,6 +3,7 @@ Pytest configuration and fixtures.
 """
 
 import json
+import logging
 import os
 import sys
 from pathlib import Path
@@ -14,6 +15,116 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from runtime.bedrock_client import BedrockClient
 from runtime.tool_registry import ToolRegistry, ToolMode, reset_registry
+
+# Configure logging to capture test output
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# pytest-html hooks for enhanced reporting
+# ============================================================================
+
+def pytest_configure(config):
+    """Configure pytest with custom markers and settings."""
+    config.addinivalue_line(
+        "markers", "logs: mark test to include detailed logs in report"
+    )
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """
+    Hook to add extra information to HTML report for ALL tests.
+    This captures stdout, stderr, and custom logs for both passing and failing tests.
+    """
+    outcome = yield
+    report = outcome.get_result()
+
+    if report.when == "call":
+        # Import here to avoid issues if pytest-html is not installed
+        try:
+            from pytest_html import extras
+        except ImportError:
+            return
+
+        # Get the extras list for HTML report (use 'extras' not 'extra' to avoid deprecation)
+        extra_list = getattr(report, "extras", [])
+
+        # Add test docstring as description
+        if item.function.__doc__:
+            extra_list.append(extras.html(
+                f'<div class="log"><strong>Description:</strong> {item.function.__doc__.strip()}</div>'
+            ))
+
+        # Add captured stdout if any
+        if hasattr(report, "capstdout") and report.capstdout:
+            extra_list.append(extras.html(
+                f'<div class="log"><strong>Stdout:</strong><pre>{report.capstdout}</pre></div>'
+            ))
+
+        # Add captured stderr if any
+        if hasattr(report, "capstderr") and report.capstderr:
+            extra_list.append(extras.html(
+                f'<div class="log"><strong>Stderr:</strong><pre>{report.capstderr}</pre></div>'
+            ))
+
+        # Add captured log if any
+        if hasattr(report, "caplog") and report.caplog:
+            extra_list.append(extras.html(
+                f'<div class="log"><strong>Logs:</strong><pre>{report.caplog}</pre></div>'
+            ))
+
+        # Add any custom properties set during the test
+        if hasattr(item, "test_details"):
+            for key, value in item.test_details.items():
+                extra_list.append(extras.html(
+                    f'<div class="log"><strong>{key}:</strong><pre>{value}</pre></div>'
+                ))
+
+        report.extras = extra_list
+
+
+@pytest.fixture
+def test_logger(request):
+    """
+    Fixture that provides a logger and captures output for the HTML report.
+    Usage: def test_example(test_logger):
+               test_logger.info("This will appear in the report")
+    """
+    # Create a test-specific logger
+    test_name = request.node.name
+    log = logging.getLogger(test_name)
+    log.setLevel(logging.DEBUG)
+
+    # Store details that will be added to the report
+    request.node.test_details = {}
+
+    def add_detail(key: str, value: str):
+        """Add a custom detail to the test report."""
+        request.node.test_details[key] = value
+
+    log.add_detail = add_detail
+    return log
+
+
+@pytest.fixture
+def report_details(request):
+    """
+    Fixture to add custom details to the HTML report.
+    Usage: def test_example(report_details):
+               report_details("Input", "some input value")
+               report_details("Expected", "expected output")
+    """
+    request.node.test_details = {}
+
+    def add_detail(key: str, value):
+        """Add a key-value detail to the test report."""
+        if isinstance(value, (dict, list)):
+            value = json.dumps(value, indent=2)
+        request.node.test_details[key] = str(value)
+
+    return add_detail
 
 
 @pytest.fixture(autouse=True)

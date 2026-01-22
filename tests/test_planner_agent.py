@@ -12,14 +12,22 @@ from runtime.bedrock_client import BedrockClient
 class TestPlannerAgent:
     """Tests for the Planner agent."""
 
-    def test_planner_happy_path(self, mock_bedrock_client, valid_planner_response):
+    def test_planner_happy_path(self, mock_bedrock_client, valid_planner_response, report_details):
         """Test planner with a valid task - should produce a valid plan."""
+        task = "Create a new user account"
         mock_bedrock_client.set_mock_response("planner", valid_planner_response)
 
+        report_details("Input Task", task)
+        report_details("Mock Response", valid_planner_response)
+
         result = run_planner(
-            task="Create a new user account",
+            task=task,
             bedrock_client=mock_bedrock_client
         )
+
+        report_details("Output Valid", result["output"].is_valid)
+        report_details("Parsed Output", result["output"].parsed_output)
+        report_details("Is Refusal", result["output"].is_refusal)
 
         assert result["error"] is None
         assert result["output"] is not None
