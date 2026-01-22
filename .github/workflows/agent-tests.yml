@@ -76,20 +76,10 @@ jobs:
           comment_mode: always
           fail_on: nothing
 
-      - name: Test Summary
+      - name: Generate Test Summary
         if: always()
         run: |
-          echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f reports/junit.xml ]; then
-            echo "### JUnit Report" >> $GITHUB_STEP_SUMMARY
-            echo "Test report uploaded as artifact: test-reports" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Test Output" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          tail -50 reports/test-output.txt >> $GITHUB_STEP_SUMMARY || echo "No output captured" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          python scripts/generate_test_summary.py reports/junit.xml >> $GITHUB_STEP_SUMMARY
 
       - name: Check test results
         if: steps.pytest.outcome == 'failure'
