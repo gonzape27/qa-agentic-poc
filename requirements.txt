@@ -12,3 +12,7 @@ pytest>=8.0.0
 pytest-html>=4.1.0
 pytest-asyncio>=0.23.0
 pytest-cov>=4.1.0
+coverage>=7.0.0
+
+# AI Test Generation
+cover-agent>=0.1.0

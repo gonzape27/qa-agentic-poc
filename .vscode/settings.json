@@ -1,0 +1,31 @@
+{
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "tests/"
+    ],
+    "python.envFile": "${workspaceFolder}/.env",
+
+    // GitHub Copilot settings
+    "github.copilot.enable": {
+        "*": true,
+        "python": true,
+        "markdown": true,
+        "yaml": true,
+        "json": true
+    },
+
+    // Copilot Chat context
+    "github.copilot.chat.localeOverride": "en",
+
+    // Coverage settings
+    "python.testing.cwd": "${workspaceFolder}",
+
+    // Editor settings for tests
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    }
+}

@@ -31,17 +31,21 @@ wheels/
 .pytest_cache/
 .coverage
 htmlcov/
+coverage-report/
+coverage.xml
+*.zip
 .tox/
 .nox/
 reports/*.html
 reports/*.xml
+reports/coverage/
 
 # IDEs
 .idea/
-.vscode/
 *.swp
 *.swo
 *~
+# Note: .vscode/ is tracked for shared Copilot settings
 
 # OS
 .DS_Store

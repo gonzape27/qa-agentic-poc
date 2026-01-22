@@ -1,0 +1,53 @@
+# Cover-Agent Configuration
+# AI-powered test generation to increase code coverage
+
+[cover-agent]
+# Target coverage percentage
+desired-coverage = 90
+
+# Test framework
+test-framework = "pytest"
+
+# Coverage type (pytest-cov generates this format)
+coverage-type = "cobertura"
+
+# Maximum iterations to try generating tests
+max-iterations = 5
+
+# Model to use (supports OpenAI, Anthropic, etc.)
+# Set via environment variable: OPENAI_API_KEY or ANTHROPIC_API_KEY
+model = "gpt-4o"
+
+# Source files to generate tests for
+[sources]
+runtime = [
+    "runtime/agent_runner.py",
+    "runtime/bedrock_client.py",
+    "runtime/tool_registry.py",
+]
+agents = [
+    "agents/planner/graph.py",
+    "agents/executor/graph.py",
+]
+
+# Corresponding test files
+[tests]
+runtime = [
+    "tests/test_agent_runner.py",
+    "tests/test_bedrock_client.py",
+    "tests/test_tool_registry.py",
+]
+agents = [
+    "tests/test_planner_agent.py",
+    "tests/test_executor_agent.py",
+]
+
+# Files to include as context for the LLM
+[context]
+include = [
+    "agents/planner/system.md",
+    "agents/planner/schema.json",
+    "agents/executor/system.md",
+    "agents/executor/schema.json",
+    "tests/conftest.py",
+]
